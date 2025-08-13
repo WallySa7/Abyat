@@ -1,21 +1,43 @@
-/* Abyat Plugin Styles - Optional standalone CSS file */
-/* These styles are already injected by the plugin, but can be customized here */
+/* ============================================================================
+   Abyat Plugin Styles - Arabic Poetry Display for Obsidian
+   ============================================================================
+   
+   This file contains all styles for the Abyat plugin, organized into sections:
+   1. Main Poem Container Styles
+   2. Poem Header (Title & Poet)
+   3. Verse Layout Styles
+   4. Size Variants
+   5. Word Annotations & Tooltips
+   6. Edit Button Styles
+   7. Modal Dialog Styles
+   8. Responsive Design
+   9. Theme Support
+   10. Print Styles
+   ============================================================================ */
+
+/* ============================================================================
+   1. MAIN POEM CONTAINER STYLES
+   ============================================================================ */
 
 .abyat-container {
 	background: var(--background-primary);
 	border-radius: 8px;
 	padding: 20px;
 	margin: 20px 0;
-	direction: rtl;
+	direction: rtl; /* Right-to-left for Arabic text */
 	font-family: var(--font-text);
 	position: relative;
-	/* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); */
 	transition: all 0.3s ease;
+	line-height: 1.8;
 }
 
 .abyat-container:hover {
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
+
+/* ============================================================================
+   2. POEM HEADER (TITLE & POET)
+   ============================================================================ */
 
 .abyat-header {
 	text-align: center;
@@ -38,9 +60,12 @@
 	font-style: italic;
 }
 
+/* ============================================================================
+   3. VERSE LAYOUT STYLES
+   ============================================================================ */
+
 .abyat-verses {
 	margin: 20px 0;
-	line-height: 1.8;
 }
 
 .abyat-verse {
@@ -53,6 +78,7 @@
 	transform: translateX(-2px);
 }
 
+/* Verse numbering */
 .abyat-verse-number {
 	position: absolute;
 	right: -30px;
@@ -66,7 +92,7 @@
 	border: 1px solid var(--background-modifier-border);
 }
 
-/* Side by side layout */
+/* Side-by-side layout (horizontal) */
 .abyat-verse.side-by-side {
 	display: flex;
 	justify-content: space-between;
@@ -79,35 +105,33 @@
 	flex: 1;
 	text-align: center;
 	padding: 8px;
-	/* background: var(--background-secondary); */
 	border-radius: 4px;
-	text-wrap: nowrap;
 }
 
-/* Stacked layout with alternating offsets */
+/* Stacked layout (vertical with indentation) */
 .abyat-verse.stacked {
 	display: flex;
 	flex-direction: column;
-	/* gap: 8px; */
 }
 
 .abyat-verse.stacked .abyat-sadr {
 	text-align: right;
-	padding-right: 0;
 	padding: 8px 12px;
-	/* background: var(--background-secondary); */
 	border-radius: 4px 0 0 4px;
 }
 
 .abyat-verse.stacked .abyat-ajaz {
 	text-align: right;
-	padding-right: 60px;
 	padding: 8px 12px;
-	/* background: var(--background-secondary); */
+	padding-right: 60px; /* Indentation for second half */
 	border-radius: 4px 0 0 4px;
 }
 
-/* Size variants */
+/* ============================================================================
+   4. SIZE VARIANTS
+   ============================================================================ */
+
+/* Small size - compact, good for inline display */
 .abyat-container.small {
 	padding: 12px;
 	margin: 10px 0;
@@ -127,10 +151,10 @@
 	margin: 10px 0;
 }
 
+/* Large size - expanded for emphasis */
 .abyat-container.large {
 	padding: 30px;
 	margin: 30px 0;
-	/* border: 2px solid var(--background-modifier-border); */
 }
 
 .abyat-container.large .abyat-title {
@@ -148,21 +172,26 @@
 	line-height: 2;
 }
 
-/* Annotated words */
+/* ============================================================================
+   5. WORD ANNOTATIONS & TOOLTIPS
+   ============================================================================ */
+
+/* Annotated words (with explanations) */
 .abyat-annotated {
 	cursor: help;
 	border-bottom: 1px solid var(--text-accent);
 	position: relative;
 	transition: all 0.2s ease;
-	padding-bottom: 5px;
+	padding-bottom: 2px;
 }
 
 .abyat-annotated:hover {
 	background: var(--background-modifier-hover);
 	border-radius: 3px;
-	padding: 0 4px 5px 4px;
+	padding: 0 4px 2px 4px;
 }
 
+/* Tooltip for annotations */
 .abyat-tooltip {
 	position: absolute;
 	bottom: 100%;
@@ -184,6 +213,7 @@
 	white-space: normal;
 }
 
+/* Tooltip arrow */
 .abyat-tooltip::after {
 	content: "";
 	position: absolute;
@@ -198,7 +228,10 @@
 	opacity: 1;
 }
 
-/* Edit button */
+/* ============================================================================
+   6. EDIT BUTTON STYLES
+   ============================================================================ */
+
 .abyat-edit-btn {
 	position: absolute;
 	top: 10px;
@@ -223,89 +256,58 @@
 	transform: scale(1.05);
 }
 
-/* Mobile responsiveness */
-@media (max-width: 768px) {
-	.abyat-container {
-		padding: 15px;
-		margin: 15px 0;
-	}
+/* ============================================================================
+   7. MODAL DIALOG STYLES
+   ============================================================================ */
 
-	.abyat-verse.side-by-side {
-		flex-direction: column;
-		gap: 10px;
-	}
-
-	.abyat-verse.side-by-side .abyat-sadr,
-	.abyat-verse.side-by-side .abyat-ajaz {
-		width: 100%;
-	}
-
-	.abyat-verse-number {
-		position: static;
-		display: inline-block;
-		margin-left: 10px;
-	}
-
-	.abyat-edit-btn {
-		top: 5px;
-		left: 5px;
-	}
-
-	.abyat-verse.stacked .abyat-ajaz {
-		padding-right: 40px;
-	}
+/* Modal container setup */
+.abyat {
+	width: 60vw;
 }
 
-/* Dark mode enhancements */
-.theme-dark .abyat-container {
-	/* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); */
+.abyat-modal {
+	direction: rtl; /* RTL for Arabic interface */
 }
 
-.theme-dark .abyat-verse.side-by-side .abyat-sadr,
-.theme-dark .abyat-verse.side-by-side .abyat-ajaz {
-	/* background: var(--background-secondary-alt); */
+/* Main modal layout - two columns */
+.abyat-modal-container {
+	display: grid;
+	grid-template-columns: 1fr 10fr;
+	gap: 20px;
+	margin-top: 20px;
+	max-height: 70vh;
+	overflow-y: auto;
 }
 
-.theme-dark .abyat-annotated:hover {
-	background: var(--background-modifier-hover);
+.abyat-modal-input,
+.abyat-modal-preview {
+	padding: 15px;
+	background: var(--background-secondary);
+	border-radius: 8px;
 }
 
-/* Print styles */
-@media print {
-	.abyat-edit-btn {
-		display: none !important;
-	}
-
-	.abyat-container {
-		page-break-inside: avoid;
-		box-shadow: none;
-		border: 1px solid #ccc;
-	}
-
-	.abyat-annotated {
-		border-bottom: none;
-		font-weight: bold;
-	}
-
-	.abyat-tooltip {
-		display: none;
-	}
+/* Modal sections */
+.abyat-modal-section {
+	margin-bottom: 20px;
 }
 
-/* Animation for verse insertion */
-@keyframes slideIn {
-	from {
-		opacity: 0;
-		transform: translateY(10px);
-	}
-	to {
-		opacity: 1;
-		transform: translateY(0);
-	}
+.abyat-modal-section h3 {
+	margin-bottom: 10px;
+	color: var(--text-title-h3);
 }
 
-.abyat-verse {
-	animation: slideIn 0.3s ease;
+/* Verses section header */
+.abyat-verses-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 10px;
+}
+
+/* Verses container with scrolling */
+.abyat-verses-container {
+	max-height: 300px;
+	overflow-y: auto;
 }
 
 /* Custom scrollbar for verses container */
@@ -325,4 +327,255 @@
 
 .abyat-verses-container::-webkit-scrollbar-thumb:hover {
 	background: var(--text-muted);
+}
+
+/* Individual verse input styling */
+.abyat-verse-input {
+	background: var(--background-primary);
+	border-radius: 6px;
+	padding: 10px;
+	margin-bottom: 10px;
+}
+
+.abyat-verse-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 10px;
+}
+
+.abyat-verse-label {
+	font-weight: bold;
+	color: var(--text-muted);
+}
+
+.abyat-verse-controls {
+	display: flex;
+	gap: 5px;
+}
+
+.abyat-verse-controls button {
+	padding: 2px 8px;
+	font-size: 0.9em;
+}
+
+.abyat-delete-btn {
+	color: var(--text-error);
+}
+
+/* Verse input fields */
+.abyat-verse-inputs {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.abyat-input-group {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.abyat-input-group label {
+	min-width: 50px;
+	font-weight: 500;
+}
+
+.abyat-verse-text {
+	flex: 1;
+	direction: rtl;
+}
+
+/* Preview container */
+.abyat-preview-container {
+	background: var(--background-primary);
+	border-radius: 8px;
+	padding: 15px;
+	min-height: 200px;
+}
+
+/* Clickable words in preview */
+.abyat-word-clickable {
+	cursor: pointer;
+	transition: background-color 0.2s;
+	padding: 2px 4px 5px 4px;
+	border-radius: 3px;
+}
+
+.abyat-word-clickable:hover {
+	background: var(--background-modifier-hover);
+}
+
+/* Annotation input section */
+.abyat-annotation-info {
+	padding: 10px;
+	background: var(--background-primary);
+	border-radius: 6px;
+	margin-bottom: 10px;
+}
+
+.abyat-annotation-hint {
+	color: var(--text-muted);
+	font-size: 0.9em;
+	margin: 0;
+}
+
+.abyat-annotation-input {
+	background: var(--background-primary);
+	border-radius: 6px;
+	padding: 10px;
+}
+
+.abyat-annotation-word {
+	margin-bottom: 10px;
+}
+
+.abyat-annotation-input-container {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.abyat-annotation-textarea {
+	width: 100%;
+	min-height: 60px;
+	resize: vertical;
+}
+
+.abyat-delete-annotation {
+	color: var(--text-error);
+	align-self: flex-start;
+}
+
+/* Modal buttons */
+.abyat-modal-buttons {
+	display: flex;
+	justify-content: flex-end;
+	gap: 10px;
+	margin-top: 20px;
+}
+
+/* ============================================================================
+   8. RESPONSIVE DESIGN
+   ============================================================================ */
+
+@media (max-width: 768px) {
+	/* Modal adjustments for mobile */
+	.abyat {
+		width: 95vw;
+	}
+
+	.abyat-modal-container {
+		grid-template-columns: 1fr;
+	}
+
+	.abyat-modal-preview {
+		order: -1; /* Show preview first on mobile */
+	}
+
+	/* Poem container adjustments */
+	.abyat-container {
+		padding: 15px;
+		margin: 15px 0;
+	}
+
+	/* Layout adjustments for mobile */
+	.abyat-verse.side-by-side {
+		flex-direction: column;
+		gap: 10px;
+	}
+
+	.abyat-verse.side-by-side .abyat-sadr,
+	.abyat-verse.side-by-side .abyat-ajaz {
+		width: 100%;
+	}
+
+	/* Verse numbering adjustments */
+	.abyat-verse-number {
+		display: inline-block;
+		margin-left: 10px;
+		right: -15px;
+	}
+
+	.large .abyat-verse-number {
+		right: -30px;
+	}
+
+	/* Edit button adjustments */
+	.abyat-edit-btn {
+		top: 5px;
+		left: 5px;
+	}
+
+	/* Reduce indentation on mobile */
+	.abyat-verse.stacked .abyat-ajaz {
+		padding-right: 40px;
+	}
+}
+
+/* ============================================================================
+   9. THEME SUPPORT
+   ============================================================================ */
+
+/* Dark theme enhancements */
+
+.theme-dark .abyat-annotated:hover {
+	background: var(--background-modifier-hover);
+}
+
+.theme-dark .abyat-tooltip {
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================================================
+   10. PRINT STYLES
+   ============================================================================ */
+
+@media print {
+	/* Hide interactive elements when printing */
+	.abyat-edit-btn {
+		display: none !important;
+	}
+
+	.abyat-container {
+		page-break-inside: avoid;
+		box-shadow: none;
+		border: 1px solid #ccc;
+	}
+
+	/* Simplify annotations for print */
+	.abyat-annotated {
+		border-bottom: none;
+		font-weight: bold;
+	}
+
+	.abyat-tooltip {
+		display: none;
+	}
+
+	/* Ensure good contrast in print */
+	.abyat-title,
+	.abyat-poet {
+		color: black;
+	}
+}
+
+/* ============================================================================
+   11. ANIMATIONS
+   ============================================================================ */
+
+/* Animation for verse insertion */
+@keyframes slideIn {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.abyat-verse {
+	animation: slideIn 0.3s ease;
 }
