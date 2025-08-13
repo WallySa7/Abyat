@@ -1,0 +1,10 @@
+{
+	"id": "abyat",
+	"name": "Abyat - Arabic Poetry",
+	"version": "1.0.0",
+	"minAppVersion": "0.15.0",
+	"description": "Insert and manage Arabic poetry verses with beautiful formatting, annotations, and multiple layout options",
+	"author": "Your Name",
+	"authorUrl": "https://github.com/yourusername",
+	"isDesktopOnly": false
+}

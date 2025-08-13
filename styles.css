@@ -1,0 +1,328 @@
+/* Abyat Plugin Styles - Optional standalone CSS file */
+/* These styles are already injected by the plugin, but can be customized here */
+
+.abyat-container {
+	background: var(--background-primary);
+	border-radius: 8px;
+	padding: 20px;
+	margin: 20px 0;
+	direction: rtl;
+	font-family: var(--font-text);
+	position: relative;
+	/* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); */
+	transition: all 0.3s ease;
+}
+
+.abyat-container:hover {
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.abyat-header {
+	text-align: center;
+	margin-bottom: 20px;
+	border-bottom: 2px solid var(--background-modifier-border);
+	padding-bottom: 10px;
+}
+
+.abyat-title {
+	font-size: 1.4em;
+	font-weight: bold;
+	color: var(--text-title-h2);
+	margin-bottom: 8px;
+	letter-spacing: 0.5px;
+}
+
+.abyat-poet {
+	font-size: 1.1em;
+	color: var(--text-muted);
+	font-style: italic;
+}
+
+.abyat-verses {
+	margin: 20px 0;
+	line-height: 1.8;
+}
+
+.abyat-verse {
+	margin: 15px 0;
+	position: relative;
+	transition: transform 0.2s ease;
+}
+
+.abyat-verse:hover {
+	transform: translateX(-2px);
+}
+
+.abyat-verse-number {
+	position: absolute;
+	right: -30px;
+	top: 50%;
+	transform: translateY(-50%);
+	color: var(--text-muted);
+	font-size: 0.9em;
+	background: var(--background-primary);
+	padding: 2px 6px;
+	border-radius: 50%;
+	border: 1px solid var(--background-modifier-border);
+}
+
+/* Side by side layout */
+.abyat-verse.side-by-side {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 40px;
+}
+
+.abyat-verse.side-by-side .abyat-sadr,
+.abyat-verse.side-by-side .abyat-ajaz {
+	flex: 1;
+	text-align: center;
+	padding: 8px;
+	/* background: var(--background-secondary); */
+	border-radius: 4px;
+	text-wrap: nowrap;
+}
+
+/* Stacked layout with alternating offsets */
+.abyat-verse.stacked {
+	display: flex;
+	flex-direction: column;
+	/* gap: 8px; */
+}
+
+.abyat-verse.stacked .abyat-sadr {
+	text-align: right;
+	padding-right: 0;
+	padding: 8px 12px;
+	/* background: var(--background-secondary); */
+	border-radius: 4px 0 0 4px;
+}
+
+.abyat-verse.stacked .abyat-ajaz {
+	text-align: right;
+	padding-right: 60px;
+	padding: 8px 12px;
+	/* background: var(--background-secondary); */
+	border-radius: 4px 0 0 4px;
+}
+
+/* Size variants */
+.abyat-container.small {
+	padding: 12px;
+	margin: 10px 0;
+	display: inline-block;
+}
+
+.abyat-container.small .abyat-title {
+	font-size: 1.1em;
+}
+
+.abyat-container.small .abyat-poet {
+	font-size: 0.95em;
+}
+
+.abyat-container.small .abyat-verse {
+	font-size: 0.95em;
+	margin: 10px 0;
+}
+
+.abyat-container.large {
+	padding: 30px;
+	margin: 30px 0;
+	/* border: 2px solid var(--background-modifier-border); */
+}
+
+.abyat-container.large .abyat-title {
+	font-size: 1.8em;
+	letter-spacing: 1px;
+}
+
+.abyat-container.large .abyat-poet {
+	font-size: 1.3em;
+}
+
+.abyat-container.large .abyat-verse {
+	font-size: 1.3em;
+	margin: 25px 0;
+	line-height: 2;
+}
+
+/* Annotated words */
+.abyat-annotated {
+	cursor: help;
+	border-bottom: 1px solid var(--text-accent);
+	position: relative;
+	transition: all 0.2s ease;
+	padding-bottom: 5px;
+}
+
+.abyat-annotated:hover {
+	background: var(--background-modifier-hover);
+	border-radius: 3px;
+	padding: 0 4px 5px 4px;
+}
+
+.abyat-tooltip {
+	position: absolute;
+	bottom: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	background: var(--background-secondary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	padding: 8px 12px;
+	font-size: 0.9em;
+	white-space: nowrap;
+	z-index: 1000;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 0.3s ease;
+	margin-bottom: 5px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+	max-width: 250px;
+	white-space: normal;
+}
+
+.abyat-tooltip::after {
+	content: "";
+	position: absolute;
+	top: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	border: 6px solid transparent;
+	border-top-color: var(--background-secondary);
+}
+
+.abyat-annotated:hover .abyat-tooltip {
+	opacity: 1;
+}
+
+/* Edit button */
+.abyat-edit-btn {
+	position: absolute;
+	top: 10px;
+	left: 10px;
+	background: var(--background-modifier-hover);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+	padding: 4px 12px;
+	cursor: pointer;
+	font-size: 0.9em;
+	opacity: 0;
+	transition: all 0.3s ease;
+	z-index: 10;
+}
+
+.abyat-container:hover .abyat-edit-btn {
+	opacity: 1;
+}
+
+.abyat-edit-btn:hover {
+	background: var(--background-modifier-active);
+	transform: scale(1.05);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+	.abyat-container {
+		padding: 15px;
+		margin: 15px 0;
+	}
+
+	.abyat-verse.side-by-side {
+		flex-direction: column;
+		gap: 10px;
+	}
+
+	.abyat-verse.side-by-side .abyat-sadr,
+	.abyat-verse.side-by-side .abyat-ajaz {
+		width: 100%;
+	}
+
+	.abyat-verse-number {
+		position: static;
+		display: inline-block;
+		margin-left: 10px;
+	}
+
+	.abyat-edit-btn {
+		top: 5px;
+		left: 5px;
+	}
+
+	.abyat-verse.stacked .abyat-ajaz {
+		padding-right: 40px;
+	}
+}
+
+/* Dark mode enhancements */
+.theme-dark .abyat-container {
+	/* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); */
+}
+
+.theme-dark .abyat-verse.side-by-side .abyat-sadr,
+.theme-dark .abyat-verse.side-by-side .abyat-ajaz {
+	/* background: var(--background-secondary-alt); */
+}
+
+.theme-dark .abyat-annotated:hover {
+	background: var(--background-modifier-hover);
+}
+
+/* Print styles */
+@media print {
+	.abyat-edit-btn {
+		display: none !important;
+	}
+
+	.abyat-container {
+		page-break-inside: avoid;
+		box-shadow: none;
+		border: 1px solid #ccc;
+	}
+
+	.abyat-annotated {
+		border-bottom: none;
+		font-weight: bold;
+	}
+
+	.abyat-tooltip {
+		display: none;
+	}
+}
+
+/* Animation for verse insertion */
+@keyframes slideIn {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.abyat-verse {
+	animation: slideIn 0.3s ease;
+}
+
+/* Custom scrollbar for verses container */
+.abyat-verses-container::-webkit-scrollbar {
+	width: 6px;
+}
+
+.abyat-verses-container::-webkit-scrollbar-track {
+	background: var(--background-secondary);
+	border-radius: 3px;
+}
+
+.abyat-verses-container::-webkit-scrollbar-thumb {
+	background: var(--background-modifier-border);
+	border-radius: 3px;
+}
+
+.abyat-verses-container::-webkit-scrollbar-thumb:hover {
+	background: var(--text-muted);
+}
