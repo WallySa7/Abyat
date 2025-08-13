@@ -28,6 +28,7 @@ export class AbyatRenderer {
 		const poemElement = this.createPoemContainer(poem);
 		this.addEditButton(poemElement, poem, originalSource);
 		this.addPoemHeader(poemElement, poem);
+		this.addPoemTags(poemElement, poem);
 		this.addPoemVerses(poemElement, poem);
 
 		container.appendChild(poemElement);
@@ -139,6 +140,27 @@ export class AbyatRenderer {
 		}
 
 		container.appendChild(header);
+	}
+
+	/**
+	 * Add poem tags if they exist
+	 */
+	private addPoemTags(container: HTMLElement, poem: AbyatPoem): void {
+		if (!poem.tags || poem.tags.length === 0) {
+			return;
+		}
+
+		const tagsContainer = document.createElement("div");
+		tagsContainer.className = "abyat-tags-preview";
+
+		poem.tags.forEach((tag) => {
+			const tagElement = document.createElement("span");
+			tagElement.className = "abyat-tag-preview";
+			tagElement.textContent = tag;
+			tagsContainer.appendChild(tagElement);
+		});
+
+		container.appendChild(tagsContainer);
 	}
 
 	/**

@@ -32,6 +32,9 @@ export interface AbyatPoem {
 	/** اسم الشاعر - Optional poet name */
 	poet?: string;
 
+	/** علامات التصنيف - Optional tags for categorizing poems */
+	tags?: string[];
+
 	/** Array of verses that make up the poem */
 	verses: AbyatVerse[];
 
@@ -74,6 +77,9 @@ export interface AbyatSettings {
 
 	/** Default numbering preference */
 	defaultNumbered: boolean;
+
+	/** Default tags for new poems */
+	defaultTags: string[];
 
 	/** Optional custom font family for Arabic text */
 	fontFamily?: string;

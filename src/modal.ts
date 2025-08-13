@@ -16,6 +16,8 @@ export class AbyatModal extends Modal {
 	private selectedWordForAnnotation: string | null = null;
 	private currentVerseIndex: number = 0; // Track current verse for keyboard navigation
 	private keyboardHandler: (event: KeyboardEvent) => void;
+	private tagsInput: TextComponent;
+	private tagsContainer: HTMLElement;
 
 	constructor(
 		app: App,
@@ -118,6 +120,13 @@ export class AbyatModal extends Modal {
 			return;
 		}
 
+		// Ctrl+T: Focus on tags input
+		if (ctrlKey && key === "t") {
+			event.preventDefault();
+			this.focusOnTags();
+			return;
+		}
+
 		// Ctrl+Up: Move verse up
 		if (ctrlKey && key === "ArrowUp" && this.currentVerseIndex > 0) {
 			event.preventDefault();
@@ -208,6 +217,15 @@ export class AbyatModal extends Modal {
 				event.preventDefault();
 				this.focusOnVerse(this.currentVerseIndex - 1, "ajaz");
 			}
+		}
+	}
+
+	/**
+	 * Focus on tags input
+	 */
+	private focusOnTags(): void {
+		if (this.tagsInput) {
+			this.tagsInput.inputEl.focus();
 		}
 	}
 
@@ -345,6 +363,7 @@ export class AbyatModal extends Modal {
 			{ keys: "Escape", description: "إغلاق النافذة" },
 			{ keys: "Ctrl+N", description: "إضافة بيت جديد" },
 			{ keys: "Ctrl+D", description: "حذف البيت الحالي" },
+			{ keys: "Ctrl+T", description: "التركيز على العلامات" },
 			{ keys: "Ctrl+↑/↓", description: "نقل البيت لأعلى/أسفل" },
 			{ keys: "Ctrl+1-9", description: "الانتقال للبيت رقم..." },
 			{ keys: "Alt+S", description: "التركيز على الصدر" },
@@ -409,6 +428,7 @@ export class AbyatModal extends Modal {
 			layout: "side-by-side",
 			size: "medium",
 			numbered: false,
+			tags: [],
 			annotations: {},
 		};
 	}
@@ -442,7 +462,7 @@ export class AbyatModal extends Modal {
 	}
 
 	/**
-	 * Setup poem metadata inputs (title, poet, layout, etc.)
+	 * Setup poem metadata inputs (title, poet, tags, layout, etc.)
 	 */
 	private setupMetadataSection(container: HTMLElement): void {
 		const section = container.createDiv({ cls: "abyat-modal-section" });
@@ -469,6 +489,9 @@ export class AbyatModal extends Modal {
 					this.updatePreview();
 				})
 		);
+
+		// Tags input
+		this.setupTagsInput(section);
 
 		// Layout dropdown
 		new Setting(section).setName("تخطيط الأبيات").addDropdown((dropdown) =>
@@ -502,6 +525,124 @@ export class AbyatModal extends Modal {
 				this.updatePreview();
 			})
 		);
+	}
+
+	/**
+	 * Setup tags input with visual tag management
+	 */
+	private setupTagsInput(container: HTMLElement): void {
+		const tagsSetting = new Setting(container);
+		tagsSetting.setName("علامات التصنيف");
+		tagsSetting.setDesc("اكتب علامة واضغط Enter أو فاصلة لإضافتها");
+
+		// Tags display container
+		this.tagsContainer = tagsSetting.settingEl.createDiv({
+			cls: "abyat-tags-container",
+		});
+
+		// Tags input
+		this.tagsInput = new TextComponent(tagsSetting.controlEl);
+		this.tagsInput.setPlaceholder("أضف علامة تصنيف...");
+		this.tagsInput.inputEl.addClass("abyat-tags-input");
+
+		// Handle tag input
+		this.tagsInput.inputEl.addEventListener("keydown", (event) => {
+			if (
+				event.key === "Enter" ||
+				event.key === "," ||
+				event.key === "،"
+			) {
+				event.preventDefault();
+				this.addTagFromInput();
+			} else if (
+				event.key === "Backspace" &&
+				this.tagsInput.getValue() === ""
+			) {
+				// Remove last tag if input is empty and backspace is pressed
+				this.removeLastTag();
+			}
+		});
+
+		this.tagsInput.inputEl.addEventListener("blur", () => {
+			// Add tag when input loses focus if there's text
+			if (this.tagsInput.getValue().trim()) {
+				this.addTagFromInput();
+			}
+		});
+
+		// Render existing tags
+		this.renderTags();
+	}
+
+	/**
+	 * Add tag from input field
+	 */
+	private addTagFromInput(): void {
+		const tagText = this.tagsInput.getValue().trim();
+		if (tagText && !this.poem.tags?.includes(tagText)) {
+			if (!this.poem.tags) {
+				this.poem.tags = [];
+			}
+			this.poem.tags.push(tagText);
+			this.tagsInput.setValue("");
+			this.renderTags();
+			this.updatePreview();
+		}
+	}
+
+	/**
+	 * Remove last tag
+	 */
+	private removeLastTag(): void {
+		if (this.poem.tags && this.poem.tags.length > 0) {
+			this.poem.tags.pop();
+			this.renderTags();
+			this.updatePreview();
+		}
+	}
+
+	/**
+	 * Remove specific tag
+	 */
+	private removeTag(tagToRemove: string): void {
+		if (this.poem.tags) {
+			this.poem.tags = this.poem.tags.filter(
+				(tag) => tag !== tagToRemove
+			);
+			this.renderTags();
+			this.updatePreview();
+		}
+	}
+
+	/**
+	 * Render tags visually
+	 */
+	private renderTags(): void {
+		this.tagsContainer.empty();
+
+		if (!this.poem.tags || this.poem.tags.length === 0) {
+			return;
+		}
+
+		this.poem.tags.forEach((tag) => {
+			const tagElement = this.tagsContainer.createDiv({
+				cls: "abyat-tag",
+			});
+
+			tagElement.createSpan({
+				cls: "abyat-tag-text",
+				text: tag,
+			});
+
+			const removeButton = tagElement.createSpan({
+				cls: "abyat-tag-remove",
+				text: "×",
+			});
+
+			removeButton.addEventListener("click", () => {
+				this.removeTag(tag);
+			});
+		});
 	}
 
 	/**
@@ -748,6 +889,7 @@ export class AbyatModal extends Modal {
 		});
 
 		this.addPreviewHeader(poemDiv);
+		this.addPreviewTags(poemDiv);
 		this.addPreviewVerses(poemDiv);
 
 		// Update highlighting after preview is rendered
@@ -776,6 +918,24 @@ export class AbyatModal extends Modal {
 				text: `- ${this.poem.poet} -`,
 			});
 		}
+	}
+
+	/**
+	 * Add tags to preview
+	 */
+	private addPreviewTags(container: HTMLElement): void {
+		if (!this.poem.tags || this.poem.tags.length === 0) {
+			return;
+		}
+
+		const tagsDiv = container.createDiv({ cls: "abyat-tags-preview" });
+
+		this.poem.tags.forEach((tag) => {
+			tagsDiv.createSpan({
+				cls: "abyat-tag-preview",
+				text: tag,
+			});
+		});
 	}
 
 	/**

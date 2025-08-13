@@ -11,6 +11,7 @@ export class AbyatParser {
 	 * Expected format:
 	 * title: القصيدة
 	 * poet: الشاعر
+	 * tags: حب، طبيعة، حزن
 	 * layout: side-by-side
 	 * size: medium
 	 * numbered: true
@@ -73,18 +74,22 @@ export class AbyatParser {
 			layout: "side-by-side",
 			size: "medium",
 			numbered: false,
+			tags: [],
 			annotations: {},
 		};
 	}
 
 	/**
-	 * Parse individual metadata line (title:, poet:, etc.)
+	 * Parse individual metadata line (title:, poet:, tags:, etc.)
 	 */
 	private parseMetadataLine(line: string, poem: AbyatPoem): void {
 		if (line.startsWith("title:")) {
 			poem.title = line.substring(6).trim();
 		} else if (line.startsWith("poet:")) {
 			poem.poet = line.substring(5).trim();
+		} else if (line.startsWith("tags:")) {
+			const tagsString = line.substring(5).trim();
+			poem.tags = this.parseTags(tagsString);
 		} else if (line.startsWith("layout:")) {
 			const layout = line.substring(7).trim();
 			if (layout === "side-by-side" || layout === "stacked") {
@@ -105,6 +110,41 @@ export class AbyatParser {
 				poem.annotations = {};
 			}
 		}
+	}
+
+	/**
+	 * Parse tags from string - supports both comma-separated and JSON array formats
+	 */
+	private parseTags(tagsString: string): string[] {
+		if (!tagsString) return [];
+
+		// Try to parse as JSON array first
+		if (tagsString.startsWith("[") && tagsString.endsWith("]")) {
+			try {
+				const parsed = JSON.parse(tagsString);
+				return Array.isArray(parsed)
+					? parsed.filter((tag) => typeof tag === "string")
+					: [];
+			} catch (error) {
+				console.error("Failed to parse tags as JSON:", error);
+			}
+		}
+
+		// Parse as comma-separated values
+		return tagsString
+			.split(/[،,]/) // Support both Arabic and English commas
+			.map((tag) => tag.trim())
+			.filter((tag) => tag.length > 0);
+	}
+
+	/**
+	 * Convert tags array to string format for storage
+	 */
+	private formatTags(tags: string[]): string {
+		if (!tags || tags.length === 0) return "";
+
+		// Use comma-separated format for readability
+		return tags.join("، "); // Arabic comma with space
 	}
 
 	/**
@@ -132,6 +172,10 @@ export class AbyatParser {
 
 		if (poem.poet) {
 			lines.push(`poet: ${poem.poet}`);
+		}
+
+		if (poem.tags && poem.tags.length > 0) {
+			lines.push(`tags: ${this.formatTags(poem.tags)}`);
 		}
 
 		lines.push(`layout: ${poem.layout}`);
