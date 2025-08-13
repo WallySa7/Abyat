@@ -456,7 +456,146 @@
 }
 
 /* ============================================================================
-   8. RESPONSIVE DESIGN
+   8. KEYBOARD SHORTCUTS HINT STYLES
+   ============================================================================ */
+
+.abyat-help-button {
+	position: absolute;
+	top: 10px;
+	left: 10px;
+	width: 30px;
+	height: 30px;
+	background: var(--background-secondary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	font-size: 1.2em;
+	font-weight: bold;
+	color: var(--text-accent);
+	z-index: 1001;
+	transition: all 0.3s ease;
+}
+
+.abyat-help-button:hover {
+	background: var(--background-modifier-hover);
+	transform: scale(1.1);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.abyat-keyboard-hints {
+	position: absolute;
+	top: 50px;
+	left: 10px;
+	background: var(--background-secondary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 8px;
+	padding: 12px;
+	font-size: 0.85em;
+	max-width: 300px;
+	z-index: 1000;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	direction: rtl;
+	opacity: 0.95;
+	transition: opacity 0.3s ease;
+}
+
+.abyat-keyboard-hints:hover {
+	opacity: 1;
+}
+
+.abyat-keyboard-hints h4 {
+	margin: 0 0 8px 0;
+	color: var(--text-title-h4);
+	font-size: 1em;
+	border-bottom: 1px solid var(--background-modifier-border);
+	padding-bottom: 5px;
+}
+
+.abyat-shortcuts-list {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.abyat-shortcut-item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 2px 0;
+}
+
+.abyat-shortcut-keys {
+	background: var(--background-primary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+	padding: 2px 6px;
+	font-family: var(--font-monospace);
+	font-size: 0.9em;
+	color: var(--text-accent);
+	white-space: nowrap;
+	min-width: fit-content;
+}
+
+.abyat-shortcut-desc {
+	color: var(--text-muted);
+	font-size: 0.9em;
+	text-align: right;
+	flex: 1;
+}
+
+/* Enhanced focus styles for better keyboard navigation */
+.abyat-verse-text:focus {
+	border-color: var(--text-accent) !important;
+	box-shadow: 0 0 0 2px rgba(var(--text-accent-rgb), 0.2);
+	outline: none;
+}
+
+/* Highlight current verse when navigating with keyboard */
+.abyat-verse-input.current-verse {
+	background: var(--background-modifier-hover);
+	border: 1px solid var(--text-accent);
+	border-radius: 6px;
+	transform: scale(1.02);
+	transition: all 0.2s ease;
+}
+
+/* Highlight focused verse in preview */
+.abyat-preview-container .abyat-verse.highlighted {
+	background: linear-gradient(
+		135deg,
+		var(--background-modifier-hover),
+		var(--background-primary)
+	);
+	border: 2px solid var(--text-accent);
+	border-radius: 8px;
+	transform: scale(1.02);
+	transition: all 0.3s ease;
+	box-shadow: 0 4px 12px rgba(var(--text-accent-rgb), 0.2);
+	position: relative;
+	z-index: 10;
+}
+
+/* Add a subtle glow effect to highlighted verse */
+.abyat-preview-container .abyat-verse.highlighted::before {
+	content: "";
+	position: absolute;
+	top: -2px;
+	left: -2px;
+	right: -2px;
+	bottom: -2px;
+	background: linear-gradient(135deg, var(--text-accent), transparent);
+	border-radius: 10px;
+	z-index: -1;
+	opacity: 0.3;
+	animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* ============================================================================
+   9. RESPONSIVE DESIGN
    ============================================================================ */
 
 @media (max-width: 768px) {
@@ -511,10 +650,55 @@
 	.abyat-verse.stacked .abyat-ajaz {
 		padding-right: 40px;
 	}
+
+	/* Mobile adjustments for keyboard hints and help button  */
+
+	.abyat-help-button {
+		top: 5px;
+		left: 5px;
+		width: 25px;
+		height: 25px;
+		font-size: 1em;
+	}
+
+	.abyat-keyboard-hints {
+		position: static;
+		max-width: 100%;
+		margin-bottom: 15px;
+		order: -1;
+	}
+
+	.abyat-shortcut-item {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 2px;
+	}
+
+	.abyat-shortcut-keys {
+		align-self: flex-end;
+	}
+
+	/* Reduce highlighting effects on mobile for better performance */
+	.abyat-preview-container .abyat-verse.highlighted {
+		transform: scale(1.01);
+		box-shadow: 0 2px 8px rgba(var(--text-accent-rgb), 0.15);
+	}
+
+	.abyat-preview-container .abyat-verse.highlighted::before {
+		animation: none; /* Disable animation on mobile */
+		opacity: 0.2;
+	}
+}
+
+/* Hide keyboard hints on very small screens */
+@media (max-width: 480px) {
+	.abyat-help-button {
+		display: none;
+	}
 }
 
 /* ============================================================================
-   9. THEME SUPPORT
+   10. THEME SUPPORT
    ============================================================================ */
 
 /* Dark theme enhancements */
@@ -528,7 +712,7 @@
 }
 
 /* ============================================================================
-   10. PRINT STYLES
+   11. PRINT STYLES
    ============================================================================ */
 
 @media print {
@@ -558,10 +742,17 @@
 	.abyat-poet {
 		color: black;
 	}
+
+	/* hide keyboard hints and help button */
+
+	.abyat-keyboard-hints,
+	.abyat-help-button {
+		display: none !important;
+	}
 }
 
 /* ============================================================================
-   11. ANIMATIONS
+   12. ANIMATIONS
    ============================================================================ */
 
 /* Animation for verse insertion */
@@ -573,6 +764,18 @@
 	to {
 		opacity: 1;
 		transform: translateY(0);
+	}
+}
+
+@keyframes pulse-glow {
+	0%,
+	100% {
+		opacity: 0.3;
+		transform: scale(1);
+	}
+	50% {
+		opacity: 0.5;
+		transform: scale(1.01);
 	}
 }
 

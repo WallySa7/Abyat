@@ -3,7 +3,7 @@ import { AbyatPoem, AbyatVerse } from "./types";
 
 /**
  * Modal dialog for creating and editing Arabic poems
- * Provides a user-friendly interface with live preview
+ * Provides a user-friendly interface with live preview and keyboard shortcuts
  */
 export class AbyatModal extends Modal {
 	private poem: AbyatPoem;
@@ -14,6 +14,8 @@ export class AbyatModal extends Modal {
 	}> = [];
 	private previewContainer: HTMLElement;
 	private selectedWordForAnnotation: string | null = null;
+	private currentVerseIndex: number = 0; // Track current verse for keyboard navigation
+	private keyboardHandler: (event: KeyboardEvent) => void;
 
 	constructor(
 		app: App,
@@ -23,6 +25,9 @@ export class AbyatModal extends Modal {
 		super(app);
 		this.onSubmit = onSubmit;
 		this.poem = existingPoem || this.createDefaultPoem();
+
+		// Bind keyboard handler
+		this.keyboardHandler = this.handleKeyboard.bind(this);
 	}
 
 	onOpen() {
@@ -44,12 +49,355 @@ export class AbyatModal extends Modal {
 		this.setupInputColumn(inputColumn);
 		this.setupPreviewColumn(previewColumn);
 		this.setupModalButtons(contentEl);
+		this.setupKeyboardShortcuts();
 
 		this.updatePreview();
+		this.focusFirstInput();
 	}
 
 	onClose() {
+		this.removeKeyboardShortcuts();
 		this.contentEl.empty();
+	}
+
+	/**
+	 * Setup keyboard shortcuts for the modal
+	 */
+	private setupKeyboardShortcuts(): void {
+		// Add global keyboard event listener
+		document.addEventListener("keydown", this.keyboardHandler);
+
+		// Add help button and hidden shortcuts hint
+		this.addHelpButton();
+		this.addKeyboardShortcutsHint();
+	}
+
+	/**
+	 * Remove keyboard shortcuts when modal closes
+	 */
+	private removeKeyboardShortcuts(): void {
+		document.removeEventListener("keydown", this.keyboardHandler);
+	}
+
+	/**
+	 * Handle keyboard events
+	 */
+	private handleKeyboard(event: KeyboardEvent): void {
+		// Only handle if modal is open and focused
+		if (!this.containerEl.contains(document.activeElement)) {
+			return;
+		}
+
+		const { ctrlKey, shiftKey, key, altKey } = event;
+
+		// Ctrl+Enter: Submit poem
+		if (ctrlKey && key === "Enter") {
+			event.preventDefault();
+			this.submitPoem();
+			return;
+		}
+
+		// Escape: Close modal
+		if (key === "Escape") {
+			event.preventDefault();
+			this.close();
+			return;
+		}
+
+		// Ctrl+N: Add new verse
+		if (ctrlKey && key === "n") {
+			event.preventDefault();
+			this.addNewVerse();
+			return;
+		}
+
+		// Ctrl+D: Delete current verse
+		if (ctrlKey && key === "d" && this.poem.verses.length > 1) {
+			event.preventDefault();
+			this.deleteVerse(this.currentVerseIndex);
+			return;
+		}
+
+		// Ctrl+Up: Move verse up
+		if (ctrlKey && key === "ArrowUp" && this.currentVerseIndex > 0) {
+			event.preventDefault();
+			this.moveVerse(this.currentVerseIndex, this.currentVerseIndex - 1);
+			this.currentVerseIndex--;
+			return;
+		}
+
+		// Ctrl+Down: Move verse down
+		if (
+			ctrlKey &&
+			key === "ArrowDown" &&
+			this.currentVerseIndex < this.poem.verses.length - 1
+		) {
+			event.preventDefault();
+			this.moveVerse(this.currentVerseIndex, this.currentVerseIndex + 1);
+			this.currentVerseIndex++;
+			return;
+		}
+
+		// Ctrl+1-9: Focus on specific verse
+		if (ctrlKey && /^[1-9]$/.test(key)) {
+			event.preventDefault();
+			const verseIndex = parseInt(key) - 1;
+			if (verseIndex < this.poem.verses.length) {
+				this.focusOnVerse(verseIndex);
+			}
+			return;
+		}
+
+		// Alt+S: Focus on Sadr input of current verse
+		if (altKey && key === "s") {
+			event.preventDefault();
+			this.focusOnSadr(this.currentVerseIndex);
+			return;
+		}
+
+		// Alt+A: Focus on Ajaz input of current verse
+		if (altKey && key === "a") {
+			event.preventDefault();
+			this.focusOnAjaz(this.currentVerseIndex);
+			return;
+		}
+
+		// Tab navigation enhancement
+		if (key === "Tab") {
+			this.handleTabNavigation(event);
+		}
+	}
+
+	/**
+	 * Enhanced tab navigation between verse inputs
+	 */
+	private handleTabNavigation(event: KeyboardEvent): void {
+		const activeElement = document.activeElement as HTMLElement;
+
+		// Check if we're in a verse input
+		if (
+			activeElement &&
+			activeElement.classList.contains("abyat-verse-text")
+		) {
+			const isShiftTab = event.shiftKey;
+			const isSadr =
+				activeElement
+					.closest(".abyat-input-group")
+					?.querySelector("label")?.textContent === "الصدر:";
+
+			if (!isShiftTab && isSadr) {
+				// Tab from Sadr to Ajaz of same verse
+				event.preventDefault();
+				this.focusOnAjaz(this.currentVerseIndex);
+			} else if (!isShiftTab && !isSadr) {
+				// Tab from Ajaz to next verse Sadr
+				event.preventDefault();
+				if (this.currentVerseIndex < this.poem.verses.length - 1) {
+					this.focusOnVerse(this.currentVerseIndex + 1);
+				} else {
+					// If last verse, add new one and focus on it
+					this.addNewVerse();
+					this.focusOnVerse(this.poem.verses.length - 1);
+				}
+			} else if (isShiftTab && !isSadr) {
+				// Shift+Tab from Ajaz to Sadr of same verse
+				event.preventDefault();
+				this.focusOnSadr(this.currentVerseIndex);
+			} else if (isShiftTab && isSadr && this.currentVerseIndex > 0) {
+				// Shift+Tab from Sadr to previous verse Ajaz
+				event.preventDefault();
+				this.focusOnVerse(this.currentVerseIndex - 1, "ajaz");
+			}
+		}
+	}
+
+	/**
+	 * Focus on a specific verse
+	 */
+	private focusOnVerse(index: number, part: "sadr" | "ajaz" = "sadr"): void {
+		if (index >= 0 && index < this.verseInputComponents.length) {
+			this.currentVerseIndex = index;
+			const component = this.verseInputComponents[index];
+			if (part === "sadr") {
+				component.sadr.inputEl.focus();
+			} else {
+				component.ajaz.inputEl.focus();
+			}
+
+			// Scroll to verse if needed
+			this.scrollToVerse(index);
+
+			// Update preview highlighting
+			this.updatePreviewHighlight();
+		}
+	}
+
+	/**
+	 * Focus on Sadr input of specific verse
+	 */
+	private focusOnSadr(index: number): void {
+		this.focusOnVerse(index, "sadr");
+	}
+
+	/**
+	 * Focus on Ajaz input of specific verse
+	 */
+	private focusOnAjaz(index: number): void {
+		this.focusOnVerse(index, "ajaz");
+	}
+
+	/**
+	 * Scroll to specific verse in the input area
+	 */
+	private scrollToVerse(index: number): void {
+		const versesContainer = this.contentEl.querySelector(
+			".abyat-verses-container"
+		) as HTMLElement;
+		const verseElements =
+			versesContainer.querySelectorAll(".abyat-verse-input");
+
+		if (verseElements[index]) {
+			verseElements[index].scrollIntoView({
+				behavior: "smooth",
+				block: "center",
+			});
+		}
+
+		const previewContainer = this.contentEl.querySelector(
+			".abyat-modal-preview"
+		) as HTMLElement;
+		const previewVerses = previewContainer?.querySelectorAll(
+			".abyat-verse-preview"
+		);
+
+		if (previewVerses[index]) {
+			previewVerses[index].scrollIntoView({
+				behavior: "smooth",
+				block: "center",
+			});
+		}
+	}
+
+	/**
+	 * Focus on first input when modal opens
+	 */
+	private focusFirstInput(): void {
+		if (this.verseInputComponents.length > 0) {
+			setTimeout(() => {
+				this.focusOnVerse(0);
+			}, 100);
+		}
+	}
+
+	/**
+	 * Submit poem (wrapper for keyboard shortcut)
+	 */
+	private submitPoem(): void {
+		this.onSubmit(this.poem);
+		this.close();
+	}
+
+	/**
+	 * Add help button to toggle keyboard shortcuts
+	 */
+	private addHelpButton(): void {
+		const helpButton = this.contentEl.createDiv({
+			cls: "abyat-help-button",
+		});
+		helpButton.innerHTML = "؟"; // Arabic question mark
+		helpButton.title = "عرض اختصارات لوحة المفاتيح";
+
+		helpButton.addEventListener("click", () => {
+			this.toggleKeyboardHints();
+		});
+	}
+
+	/**
+	 * Toggle keyboard shortcuts hint visibility
+	 */
+	private toggleKeyboardHints(): void {
+		const hintsContainer = this.contentEl.querySelector(
+			".abyat-keyboard-hints"
+		) as HTMLElement;
+		if (hintsContainer) {
+			const isVisible = hintsContainer.style.display !== "none";
+			hintsContainer.style.display = isVisible ? "none" : "block";
+		}
+	}
+
+	/**
+	 * Add keyboard shortcuts hint to modal (hidden by default)
+	 */
+	private addKeyboardShortcutsHint(): void {
+		const { contentEl } = this;
+		const hintsContainer = contentEl.createDiv({
+			cls: "abyat-keyboard-hints",
+		});
+		hintsContainer.style.display = "none"; // Hidden by default
+
+		const hintsTitle = hintsContainer.createEl("h4", {
+			text: "اختصارات لوحة المفاتيح",
+		});
+		hintsTitle.style.marginBottom = "10px";
+
+		const shortcuts = [
+			{ keys: "Ctrl+Enter", description: "إدراج القصيدة" },
+			{ keys: "Escape", description: "إغلاق النافذة" },
+			{ keys: "Ctrl+N", description: "إضافة بيت جديد" },
+			{ keys: "Ctrl+D", description: "حذف البيت الحالي" },
+			{ keys: "Ctrl+↑/↓", description: "نقل البيت لأعلى/أسفل" },
+			{ keys: "Ctrl+1-9", description: "الانتقال للبيت رقم..." },
+			{ keys: "Alt+S", description: "التركيز على الصدر" },
+			{ keys: "Alt+A", description: "التركيز على العجز" },
+			{ keys: "Tab", description: "الانتقال للحقل التالي" },
+		];
+
+		const shortcutsList = hintsContainer.createDiv({
+			cls: "abyat-shortcuts-list",
+		});
+
+		shortcuts.forEach((shortcut) => {
+			const shortcutItem = shortcutsList.createDiv({
+				cls: "abyat-shortcut-item",
+			});
+
+			const keys = shortcutItem.createSpan({
+				cls: "abyat-shortcut-keys",
+				text: shortcut.keys,
+			});
+			shortcutItem.createSpan({ text: ": " });
+			shortcutItem.createSpan({
+				cls: "abyat-shortcut-desc",
+				text: shortcut.description,
+			});
+		});
+	}
+
+	/**
+	 * Update current verse index when inputs get focus
+	 */
+	private updateCurrentVerseIndex(index: number): void {
+		this.currentVerseIndex = index;
+		this.updatePreviewHighlight();
+	}
+
+	/**
+	 * Update preview highlighting for current verse
+	 */
+	private updatePreviewHighlight(): void {
+		// Remove existing highlights
+		const existingHighlights = this.previewContainer.querySelectorAll(
+			".abyat-verse.highlighted"
+		);
+		existingHighlights.forEach((verse) => verse.removeClass("highlighted"));
+
+		// Add highlight to current verse using data attribute
+		const targetVerse = this.previewContainer.querySelector(
+			`[data-verse-index="${this.currentVerseIndex}"]`
+		);
+		if (targetVerse) {
+			targetVerse.addClass("highlighted");
+		}
 	}
 
 	/**
@@ -205,6 +553,11 @@ export class AbyatModal extends Modal {
 		) as HTMLElement;
 		this.renderVerseInputs(container);
 		this.updatePreview();
+
+		// Focus on the new verse
+		setTimeout(() => {
+			this.focusOnVerse(this.poem.verses.length - 1);
+		}, 100);
 	}
 
 	/**
@@ -259,7 +612,7 @@ export class AbyatModal extends Modal {
 		if (index > 0) {
 			new ButtonComponent(container)
 				.setButtonText("↑")
-				.setTooltip("نقل لأعلى")
+				.setTooltip("نقل لأعلى (Ctrl+↑)")
 				.onClick(() => this.moveVerse(index, index - 1));
 		}
 
@@ -267,7 +620,7 @@ export class AbyatModal extends Modal {
 		if (index < this.poem.verses.length - 1) {
 			new ButtonComponent(container)
 				.setButtonText("↓")
-				.setTooltip("نقل لأسفل")
+				.setTooltip("نقل لأسفل (Ctrl+↓)")
 				.onClick(() => this.moveVerse(index, index + 1));
 		}
 
@@ -275,7 +628,7 @@ export class AbyatModal extends Modal {
 		if (this.poem.verses.length > 1) {
 			new ButtonComponent(container)
 				.setButtonText("×")
-				.setTooltip("حذف البيت")
+				.setTooltip("حذف البيت (Ctrl+D)")
 				.setClass("abyat-delete-btn")
 				.onClick(() => this.deleteVerse(index));
 		}
@@ -295,6 +648,14 @@ export class AbyatModal extends Modal {
 		) as HTMLElement;
 		this.renderVerseInputs(container);
 		this.updatePreview();
+
+		// Update current verse index
+		this.currentVerseIndex = toIndex;
+
+		// Refocus on moved verse
+		setTimeout(() => {
+			this.focusOnVerse(toIndex);
+		}, 100);
 	}
 
 	/**
@@ -307,6 +668,16 @@ export class AbyatModal extends Modal {
 		) as HTMLElement;
 		this.renderVerseInputs(container);
 		this.updatePreview();
+
+		// Adjust current verse index
+		if (this.currentVerseIndex >= this.poem.verses.length) {
+			this.currentVerseIndex = Math.max(0, this.poem.verses.length - 1);
+		}
+
+		// Focus on appropriate verse
+		setTimeout(() => {
+			this.focusOnVerse(this.currentVerseIndex);
+		}, 100);
 	}
 
 	/**
@@ -331,6 +702,11 @@ export class AbyatModal extends Modal {
 			});
 		sadrInput.inputEl.addClass("abyat-verse-text");
 
+		// Add focus listener to update current verse
+		sadrInput.inputEl.addEventListener("focus", () => {
+			this.updateCurrentVerseIndex(index);
+		});
+
 		// Ajaz (second half) input
 		const ajazDiv = inputsDiv.createDiv({ cls: "abyat-input-group" });
 		ajazDiv.createEl("label", { text: "العجز:" });
@@ -342,6 +718,11 @@ export class AbyatModal extends Modal {
 				this.updatePreview();
 			});
 		ajazInput.inputEl.addClass("abyat-verse-text");
+
+		// Add focus listener to update current verse
+		ajazInput.inputEl.addEventListener("focus", () => {
+			this.updateCurrentVerseIndex(index);
+		});
 
 		this.verseInputComponents.push({ sadr: sadrInput, ajaz: ajazInput });
 	}
@@ -368,6 +749,11 @@ export class AbyatModal extends Modal {
 
 		this.addPreviewHeader(poemDiv);
 		this.addPreviewVerses(poemDiv);
+
+		// Update highlighting after preview is rendered
+		setTimeout(() => {
+			this.updatePreviewHighlight();
+		}, 10);
 	}
 
 	/**
@@ -398,18 +784,23 @@ export class AbyatModal extends Modal {
 	private addPreviewVerses(container: HTMLElement): void {
 		const versesDiv = container.createDiv({ cls: "abyat-verses" });
 
+		let previewIndex = 0; // Track preview index separately from poem index
+
 		this.poem.verses.forEach((verse, index) => {
 			// Skip empty verses in preview
 			if (!verse.sadr && !verse.ajaz) return;
 
 			const verseDiv = versesDiv.createDiv({
-				cls: `abyat-verse ${this.poem.layout}`,
+				cls: `abyat-verse abyat-verse-preview ${this.poem.layout}`,
 			});
+
+			// Add data attribute to track which input verse this corresponds to
+			verseDiv.setAttribute("data-verse-index", index.toString());
 
 			if (this.poem.numbered) {
 				verseDiv.createDiv({
 					cls: "abyat-verse-number",
-					text: (index + 1).toString(),
+					text: (previewIndex + 1).toString(),
 				});
 			}
 
@@ -418,6 +809,8 @@ export class AbyatModal extends Modal {
 
 			this.makeWordsClickableForAnnotation(verse.sadr, sadrDiv);
 			this.makeWordsClickableForAnnotation(verse.ajaz, ajazDiv);
+
+			previewIndex++;
 		});
 	}
 
@@ -542,15 +935,14 @@ export class AbyatModal extends Modal {
 		});
 
 		new ButtonComponent(buttonContainer)
-			.setButtonText("إدراج")
+			.setButtonText("إدراج (Ctrl+Enter)")
 			.setCta()
 			.onClick(() => {
-				this.onSubmit(this.poem);
-				this.close();
+				this.submitPoem();
 			});
 
 		new ButtonComponent(buttonContainer)
-			.setButtonText("إلغاء")
+			.setButtonText("إلغاء (Esc)")
 			.onClick(() => this.close());
 	}
 }
