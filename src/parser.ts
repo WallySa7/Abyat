@@ -16,7 +16,6 @@ export class AbyatParser {
 	 * size: medium
 	 * numbered: true
 	 * annotations: [{"text":"كلمة","annotation":"تفسير",...}]
-	 * legacyAnnotations: {"كلمة": "تفسير"} (for backward compatibility)
 	 * ---
 	 * صدر البيت الأول | عجز البيت الأول
 	 * صدر البيت الثاني | عجز البيت الثاني
@@ -40,18 +39,6 @@ export class AbyatParser {
 			} else if (trimmedLine) {
 				this.parseVerseLine(trimmedLine, poem);
 			}
-		}
-
-		// Convert legacy annotations if present and no new annotations exist
-		if (
-			poem.legacyAnnotations &&
-			(!poem.annotations || poem.annotations.length === 0)
-		) {
-			poem.annotations = this.convertLegacyAnnotations(
-				poem.legacyAnnotations,
-				poem.verses
-			);
-			delete poem.legacyAnnotations;
 		}
 
 		return poem;
@@ -93,53 +80,6 @@ export class AbyatParser {
 	}
 
 	/**
-	 * Convert legacy annotations to new format
-	 */
-	private convertLegacyAnnotations(
-		legacyAnnotations: Record<string, string>,
-		verses: AbyatVerse[]
-	): AbyatAnnotation[] {
-		const annotations: AbyatAnnotation[] = [];
-		let annotationId = 0;
-
-		verses.forEach((verse, verseIndex) => {
-			// Check sadr
-			Object.keys(legacyAnnotations).forEach((word) => {
-				const index = verse.sadr.indexOf(word);
-				if (index !== -1) {
-					annotations.push({
-						id: `legacy_${annotationId++}`,
-						text: word,
-						annotation: legacyAnnotations[word],
-						verseIndex,
-						part: "sadr",
-						startPos: index,
-						endPos: index + word.length,
-					});
-				}
-			});
-
-			// Check ajaz
-			Object.keys(legacyAnnotations).forEach((word) => {
-				const index = verse.ajaz.indexOf(word);
-				if (index !== -1) {
-					annotations.push({
-						id: `legacy_${annotationId++}`,
-						text: word,
-						annotation: legacyAnnotations[word],
-						verseIndex,
-						part: "ajaz",
-						startPos: index,
-						endPos: index + word.length,
-					});
-				}
-			});
-		});
-
-		return annotations;
-	}
-
-	/**
 	 * Parse individual metadata line (title:, poet:, tags:, etc.)
 	 */
 	private parseMetadataLine(line: string, poem: AbyatPoem): void {
@@ -172,12 +112,6 @@ export class AbyatParser {
 			} catch (error) {
 				console.error("Failed to parse annotations:", error);
 				poem.annotations = [];
-			}
-		} else if (line.startsWith("legacyAnnotations:")) {
-			try {
-				poem.legacyAnnotations = JSON.parse(line.substring(18).trim());
-			} catch (error) {
-				console.error("Failed to parse legacy annotations:", error);
 			}
 		}
 	}
@@ -255,16 +189,6 @@ export class AbyatParser {
 		// Save new format annotations
 		if (poem.annotations && poem.annotations.length > 0) {
 			lines.push(`annotations: ${JSON.stringify(poem.annotations)}`);
-		}
-
-		// Save legacy annotations if they still exist (for backward compatibility)
-		if (
-			poem.legacyAnnotations &&
-			Object.keys(poem.legacyAnnotations).length > 0
-		) {
-			lines.push(
-				`legacyAnnotations: ${JSON.stringify(poem.legacyAnnotations)}`
-			);
 		}
 	}
 }

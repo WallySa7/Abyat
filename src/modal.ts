@@ -45,11 +45,6 @@ export class AbyatModal extends Modal {
 		this.onSubmit = onSubmit;
 		this.poem = existingPoem || this.createDefaultPoem();
 
-		// Convert legacy annotations to new format if present
-		if (this.poem.legacyAnnotations && !this.poem.annotations) {
-			this.convertLegacyAnnotations();
-		}
-
 		// Bind keyboard handler
 		this.keyboardHandler = this.handleKeyboard.bind(this);
 	}
@@ -82,52 +77,6 @@ export class AbyatModal extends Modal {
 	onClose() {
 		this.removeKeyboardShortcuts();
 		this.contentEl.empty();
-	}
-
-	/**
-	 * Convert legacy annotations to new format
-	 */
-	private convertLegacyAnnotations(): void {
-		if (!this.poem.legacyAnnotations) return;
-
-		this.poem.annotations = [];
-		let annotationId = 0;
-
-		this.poem.verses.forEach((verse, verseIndex) => {
-			// Check sadr
-			Object.keys(this.poem.legacyAnnotations!).forEach((word) => {
-				const index = verse.sadr.indexOf(word);
-				if (index !== -1) {
-					this.poem.annotations!.push({
-						id: `ann_${annotationId++}`,
-						text: word,
-						annotation: this.poem.legacyAnnotations![word],
-						verseIndex,
-						part: "sadr",
-						startPos: index,
-						endPos: index + word.length,
-					});
-				}
-			});
-
-			// Check ajaz
-			Object.keys(this.poem.legacyAnnotations!).forEach((word) => {
-				const index = verse.ajaz.indexOf(word);
-				if (index !== -1) {
-					this.poem.annotations!.push({
-						id: `ann_${annotationId++}`,
-						text: word,
-						annotation: this.poem.legacyAnnotations![word],
-						verseIndex,
-						part: "ajaz",
-						startPos: index,
-						endPos: index + word.length,
-					});
-				}
-			});
-		});
-
-		delete this.poem.legacyAnnotations;
 	}
 
 	/**

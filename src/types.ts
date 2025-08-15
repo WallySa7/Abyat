@@ -87,12 +87,6 @@ export interface AbyatPoem {
 	 * New structure to support phrase annotations
 	 */
 	annotations?: AbyatAnnotation[];
-
-	/**
-	 * Legacy annotations format (for backward compatibility)
-	 * @deprecated Use annotations array instead
-	 */
-	legacyAnnotations?: Record<string, string>;
 }
 
 /**
