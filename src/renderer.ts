@@ -1,5 +1,5 @@
 import { App, MarkdownPostProcessorContext } from "obsidian";
-import { AbyatPoem, AbyatVerse } from "./types";
+import { AbyatPoem, AbyatVerse, AbyatAnnotation } from "./types";
 import { AbyatModal } from "./modal";
 import { AbyatParser } from "./parser";
 
@@ -195,7 +195,12 @@ export class AbyatRenderer {
 		}
 
 		// Add verse parts (صدر and عجز)
-		this.addVerseParts(verseElement, verse, poem.annotations || {});
+		this.addVerseParts(
+			verseElement,
+			verse,
+			poem.annotations || [],
+			verseIndex
+		);
 
 		return verseElement;
 	}
@@ -219,7 +224,8 @@ export class AbyatRenderer {
 	private addVerseParts(
 		verseElement: HTMLElement,
 		verse: AbyatVerse,
-		annotations: Record<string, string>
+		annotations: AbyatAnnotation[],
+		verseIndex: number
 	): void {
 		const sadrElement = document.createElement("div");
 		sadrElement.className = "abyat-sadr";
@@ -228,54 +234,91 @@ export class AbyatRenderer {
 		ajazElement.className = "abyat-ajaz";
 
 		// Process text with annotations
-		this.renderTextWithAnnotations(verse.sadr, sadrElement, annotations);
-		this.renderTextWithAnnotations(verse.ajaz, ajazElement, annotations);
+		this.renderTextWithAnnotations(
+			verse.sadr,
+			sadrElement,
+			annotations,
+			verseIndex,
+			"sadr"
+		);
+		this.renderTextWithAnnotations(
+			verse.ajaz,
+			ajazElement,
+			annotations,
+			verseIndex,
+			"ajaz"
+		);
 
 		verseElement.appendChild(sadrElement);
 		verseElement.appendChild(ajazElement);
 	}
 
 	/**
-	 * Render text with word annotations and tooltips
+	 * Render text with word/phrase annotations and tooltips
 	 */
 	private renderTextWithAnnotations(
 		text: string,
 		container: HTMLElement,
-		annotations: Record<string, string>
+		annotations: AbyatAnnotation[],
+		verseIndex: number,
+		part: "sadr" | "ajaz"
 	): void {
-		const words = text.split(" ");
+		if (!text) return;
 
-		words.forEach((word, index) => {
-			// Add space before each word except the first
-			if (index > 0) {
-				container.appendChild(document.createTextNode(" "));
+		// Get annotations for this specific text
+		const relevantAnnotations = annotations.filter(
+			(ann) => ann.verseIndex === verseIndex && ann.part === part
+		);
+
+		// Sort annotations by start position
+		relevantAnnotations.sort((a, b) => a.startPos - b.startPos);
+
+		let lastPos = 0;
+
+		// Process text with annotations
+		relevantAnnotations.forEach((ann) => {
+			// Add text before annotation
+			if (ann.startPos > lastPos) {
+				const beforeText = text.substring(lastPos, ann.startPos);
+				container.appendChild(document.createTextNode(beforeText));
 			}
 
-			if (annotations[word]) {
-				this.createAnnotatedWord(container, word, annotations[word]);
-			} else {
-				container.appendChild(document.createTextNode(word));
-			}
+			// Add annotated text with tooltip
+			this.createAnnotatedElement(container, ann.text, ann.annotation);
+
+			lastPos = ann.endPos;
 		});
+
+		// Add remaining text after last annotation
+		if (lastPos < text.length) {
+			const remainingText = text.substring(lastPos);
+			container.appendChild(document.createTextNode(remainingText));
+		}
+
+		// If no annotations, just add the plain text
+		// if (relevantAnnotations.length === 0) {
+		// 	container.appendChild(document.createTextNode(text));
+		// }
 	}
 
 	/**
-	 * Create an annotated word with tooltip
+	 * Create an annotated element (word or phrase) with tooltip
 	 */
-	private createAnnotatedWord(
+	private createAnnotatedElement(
 		container: HTMLElement,
-		word: string,
+		text: string,
 		annotation: string
 	): void {
-		const wordElement = document.createElement("span");
-		wordElement.className = "abyat-annotated";
-		wordElement.textContent = word;
+		const annotatedElement = document.createElement("span");
+		annotatedElement.className = "abyat-annotated abyat-phrase-annotation";
+		annotatedElement.textContent = text;
 
+		// Create tooltip
 		const tooltipElement = document.createElement("div");
 		tooltipElement.className = "abyat-tooltip";
 		tooltipElement.textContent = annotation;
 
-		wordElement.appendChild(tooltipElement);
-		container.appendChild(wordElement);
+		annotatedElement.appendChild(tooltipElement);
+		container.appendChild(annotatedElement);
 	}
 }

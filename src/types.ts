@@ -23,6 +23,32 @@ export interface AbyatVerse {
 }
 
 /**
+ * Represents a single annotation for a word or phrase
+ */
+export interface AbyatAnnotation {
+	/** The annotated text (word or phrase) */
+	text: string;
+
+	/** The annotation/explanation */
+	annotation: string;
+
+	/** Verse index where this annotation appears */
+	verseIndex: number;
+
+	/** Part of verse: 'sadr' or 'ajaz' */
+	part: "sadr" | "ajaz";
+
+	/** Starting position in the text */
+	startPos: number;
+
+	/** Ending position in the text */
+	endPos: number;
+
+	/** Unique identifier for the annotation */
+	id: string;
+}
+
+/**
  * Represents a complete Arabic poem (قصيدة) with all its metadata
  */
 export interface AbyatPoem {
@@ -57,11 +83,16 @@ export interface AbyatPoem {
 	numbered: boolean;
 
 	/**
-	 * Word annotations mapping
-	 * Key: Arabic word, Value: Explanation/translation
-	 * Used to provide tooltips for difficult or archaic words
+	 * Array of annotations for words and phrases
+	 * New structure to support phrase annotations
 	 */
-	annotations?: Record<string, string>;
+	annotations?: AbyatAnnotation[];
+
+	/**
+	 * Legacy annotations format (for backward compatibility)
+	 * @deprecated Use annotations array instead
+	 */
+	legacyAnnotations?: Record<string, string>;
 }
 
 /**
